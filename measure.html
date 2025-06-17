@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>FocusManager - 집중 측정</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/themify-icons@0.1.2/css/themify-icons.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  
+
+
+
+<header class="page-header text-center">
+  <div class="container">
+    <h1 class="header-title">Focus Timer</h1>
+  </div>
+</header>
+
+
+  
+  <style>
+html, body {
+  overflow-x: hidden;
+}
+
+
+
+
+    /* Gradient Header matching index.html */
+    .page-header {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    padding: 0.8rem 0;
+    }
+    .page-header .header-title {
+    color: #fff;
+    font-weight: bold;
+    font-size: 2rem;
+    }
+    /* Timer Card */
+    .timer-card {
+    max-width: 400px;
+    margin: -2rem auto 2rem;  /* lifts it over the header */
+    background: #fff;
+    border-radius: .5rem;
+    }
+    .control-btn {
+    width: 100px;
+    }
+
+
+    body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
+    .card { border: none; border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    #timer-display { font-size: 2.5rem; font-weight: bold; }
+    #timer-display.pulse { animation: pulse 1s infinite; }
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.7; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* 챗봇 스타일 */
+    #chatbot-toggle { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
+    #chatbot {
+      position: fixed; bottom: 70px; right: 20px; width: 320px; max-height: 500px;
+      display: none; flex-direction: column; background: #fff;
+      border-radius: 12px; border: 1px solid #ccc;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden;
+    }
+    #chatbot-messages {
+      flex: 1; padding: 10px; overflow-y: auto;
+      display: flex; flex-direction: column;
+    }
+    .bubble {
+      max-width: 75%; padding: 8px 12px; margin: 4px 0;
+      border-radius: 18px; line-height: 1.4;
+    }
+    .user { background-color: #007bff; color: white; align-self: flex-end; border-bottom-right-radius: 0; }
+    .bot { background-color: #e9ecef; color: black; align-self: flex-start; border-bottom-left-radius: 0; }
+    .faq-btn {
+      font-size: 13px; margin: 4px; padding: 5px 10px;
+      border: 1px solid #ccc; border-radius: 20px; background: white; cursor: pointer;
+    }
+
+    /* 챗봇 FAQ 버튼 스타일 (새로운 클래스에 적용) */
+    .chatbot-faq-btn { /* 이전의 .faq-btn 스타일을 이 클래스에 적용 */
+      font-size: 13px; margin: 4px; padding: 5px 10px;
+      border: 1px solid #ccc; border-radius: 20px; background: white; cursor: pointer;
+    }
+/* style 블록 맨 아래에 추가 */
+.navbar {
+  z-index: 10002;
+}
+/* 사용방법 팝업 – 챗봇과 동일한 위치·디자인 */
+#usage-panel {
+  position: fixed;
+  bottom: 70px;      /* 챗봇 힌트와 같은 높이 */
+  left: 20px;        /* 챗봇 토글과 동일한 좌측 마진 */
+  width: 320px;      /* 챗봇 가로 너비와 동일 */
+  max-height: 500px; /* 챗봇 높이와 동일 */
+  display: none;     /* .open 클래스에서 flex로 전환 */
+  flex-direction: column;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  overflow: hidden;
+  z-index: 9999;
+}
+#usage-panel.open {
+  display: flex;
+}
+
+#usage-panel .close-btn {
+  position: absolute;
+  top: 10px; right: 10px;
+  font-size: 1.5rem;
+  background: none; border: none;
+  cursor: pointer; color: #555;
+}
+/* 토글 버튼 위치 */
+#usage-toggle {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 9999;
+}
+/* 체크리스트 아이콘 */
+#usage-panel .card-body ul li::before {
+  content: "✔︎ ";
+  color: #2a5298;
+}
+.navbar {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+.navbar .navbar-brand {
+  margin-right: 1.5rem;  /* report.html 쪽 간격과 비슷하게 */
+}
+
+
+
+
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+  <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-transparent">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">FocusManager</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <a class="navbar-brand" href="report.html">Report</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+    
+    </div>
+  </nav>
+
+<button id="usage-toggle" class="btn btn-primary">사용방법</button>
+<div id="usage-panel">
+  <button class="close-btn">&times;</button>
+  <div class="card h-100">
+    <div class="card-body">
+      <h5 class="card-title">사용방법</h5>
+      <ul>
+        <li>📘 먼저 ‘무엇을 공부하나요?’에서 활동을 선택하세요.</li>
+        <li>📍 ‘어디서 공부하나요?’에서 장소를 선택하세요.</li>
+        <li>시작 버튼을 눌러 타이머를 시작하세요.</li>
+        <li>중단 버튼으로 일시 중지할 수 있습니다.</li>
+        <li>초기화 버튼으로 기록을 저장하고 초기화할 수 있습니다.</li>
+        <li>하단 로그에서 세션 기록을 확인하세요.</li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+<div class="container" style="max-width: 480px; margin-top: 30px;">
+
+  <!-- 📘 무엇을 공부하나요 -->
+  <div class="card mb-4 p-3 shadow-sm">
+    <label class="mb-2"><strong>📘 무엇을 공부하나요?</strong></label>
+    <div id="activity-buttons" class="d-flex flex-wrap gap-2">
+      <div id="activity-buttons" style="margin-top:5px; text-align:center;">
+        <button onclick="changeActivity('학업')" class="activity-btn faq-btn">📘 학업</button>
+        <button onclick="changeActivity('자격증')" class="activity-btn faq-btn">📜 자격증</button>
+        <button onclick="changeActivity('코딩')" class="activity-btn faq-btn">💻 코딩</button>
+        <button onclick="changeActivity('논문작성')" class="activity-btn faq-btn">📝 논문작성</button>
+    </div>
+    </div>
+    <input id="input-activity" type="text" readonly class="form-control mt-2" placeholder="선택해주세요">
+    <button onclick="addActivity()" class="btn btn-light border btn-xs mt-2 px-2 py-1" style="font-size: 12px;">
+      ＋ 활동 추가
+    </button>
+  </div>
+
+  <!-- 📍 어디서 공부하나요 -->
+  <div class="card mb-4 p-3 shadow-sm">
+    <label class="mb-2"><strong>📍 어디서 공부하나요?</strong></label>
+    <div id="location-buttons" class="d-flex flex-wrap gap-2">
+      <div id="location-buttons" style="margin-top:5px; text-align:center;">
+        <button onclick="changeLocation('집')" class="location-btn faq-btn">🏠 집</button>
+        <button onclick="changeLocation('카페')" class="location-btn faq-btn">☕ 카페</button>
+        <button onclick="changeLocation('도서관')" class="location-btn faq-btn">📚 도서관</button>
+        <button onclick="changeLocation('스터디룸')" class="location-btn faq-btn">👥 스터디룸</button>
+    </div>
+    </div>
+    <input id="input-location" type="text" readonly class="form-control mt-2" placeholder="선택해주세요">
+    <button onclick="addLocation()" class="btn btn-light border btn-xs mt-2 px-2 py-1" style="font-size: 12px;">
+      ＋ 장소 추가
+    </button>
+  </div>
+
+</div>
+
+
+    
+
+
+  <div style="text-align:center;">
+    <div id="timer-display" style="font-size:1.8rem; margin-bottom:10px;" class="pulse">00:00</div>
+    <button id="btn-start" class="btn btn-primary btn-sm">시작</button>
+    <button id="btn-pause" class="btn btn-secondary btn-sm" disabled>중단</button>
+    <button id="btn-reset" class="btn btn-warning btn-sm" disabled>초기화</button>
+  </div>
+  
+</div>
+
+<div id="session-log" style="max-width:480px; margin:20px auto; padding:15px; border-top:1px solid #ccc; font-size:14px; color:#333; background:#fff; border-radius:8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);"></div>
+
+
+  <!-- 챗봇 토글 버튼 -->
+  <button id="chatbot-toggle" class="btn btn-primary">챗봇 열기</button>
+    <div id="chatbot-hint" style="
+        position: fixed;
+        bottom: 70px;
+        right: 20px;
+        background: #fffbe6;
+        border: 1px solid #ffe58f;
+        color: #d48806;
+        border-radius: 12px;
+        padding: 10px 14px;
+        font-size: 13px;
+        font-family: 'Comic Sans MS', 'Apple SD Gothic Neo', cursive;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        z-index: 9998;
+        max-width: 180px;
+        ">
+        💡 집중이 안돼?
+    </div>
+
+    <!-- 사용방법 힌트 -->
+<div id="usage-hint" style="
+    position: fixed;
+    bottom: 70px;
+    left: 20px;
+    background: #fffbe6;
+    border: 1px solid #ffe58f;
+    color: #d48806;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-family: 'Comic Sans MS','Apple SD Gothic Neo',cursive;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    z-index: 9998;
+    max-width: 180px;
+">
+  ℹ️ 사용방법은 여기!
+</div>
+
+
+  <!-- 챗봇 UI -->
+  <div id="chatbot">
+    <div id="chatbot-messages"></div>
+    <div style="display:flex; border-top:1px solid #ddd;">
+      <input id="chat-input" type="text" placeholder="메시지 입력..." style="flex:1; border:none; padding:10px;">
+      <button id="chat-send" style="padding:10px; background:#007bff; color:white; border:none;">전송</button>
+    </div>
+    <div style="padding:8px; display:flex; flex-wrap:wrap; border-top:1px solid #eee;">
+      <button class="chatbot-faq-btn">스트레칭 방법 알려줘</button>
+      <button class="chatbot-faq-btn">눈 피로 회복법 알려줘</button>
+      <button class="chatbot-faq-btn">좋은 공부 루틴</button>
+      <button class="chatbot-faq-btn">취준 명언</button>
+      <button class="chatbot-faq-btn">동기부여 시켜줘</button>
+      <button class="chatbot-faq-btn">부엉이가 물에 빠지면?</button>
+    </div>
+
+  </div>
+
+  <script>
+    function addActivity() {
+    const newActivity = prompt("추가할 활동명을 입력하세요:");
+    if (newActivity && newActivity.trim() !== "") {
+        const btn = document.createElement("button");
+        btn.className = "activity-btn faq-btn";
+        btn.textContent = newActivity;
+        btn.onclick = () => changeActivity(newActivity);
+        document.getElementById("activity-buttons").appendChild(btn);
+    }
+    }
+
+    function addLocation() {
+    const newLocation = prompt("추가할 장소명을 입력하세요:");
+    if (newLocation && newLocation.trim() !== "") {
+        const btn = document.createElement("button");
+        btn.className = "location-btn faq-btn";
+        btn.textContent = newLocation;
+        btn.onclick = () => changeLocation(newLocation);
+        document.getElementById("location-buttons").appendChild(btn);
+    }
+    }
+
+
+
+    //ㅇㅇ
+    let timerInterval;
+  let totalSeconds = 0;
+  const sessions = [];
+  let currentSession = null;
+
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function formatTime(sec) {
+    const m = Math.floor(sec / 60), s = sec % 60;
+    return pad(m) + ':' + pad(s);
+  }
+  function updateDisplay() {
+    document.getElementById('timer-display').textContent = formatTime(totalSeconds);
+  }
+  function updateLog() {
+    const log = document.getElementById('session-log');
+    if (sessions.length === 0) return log.innerHTML = '<em>기록 없음</em>';
+    const base = sessions[0].start;
+    log.innerHTML = sessions.map((s, idx) => {
+      const startSec = Math.floor((s.start - base) / 1000);
+      const endSec = s.end ? Math.floor((s.end - base) / 1000) : totalSeconds;
+      const safeEnd = Math.max(startSec + 1, endSec);
+      return `<div style='margin-bottom:6px; padding:6px 10px; background:#f1f3f5; border-radius:6px;'>
+        <strong>${formatTime(startSec)} ~ ${formatTime(safeEnd)}</strong><br>
+        📘 ${s.activity}, 📍 ${s.location}
+      </div>`;
+    }).join('');
+  }
+
+  function changeActivity(value) {
+    const input = document.getElementById('input-activity');
+    if (input.value !== value) input.value = value;
+    if (currentSession) {
+      const now = new Date();
+      currentSession.end = now;
+      updateLog();
+      currentSession = { activity: value, location: document.getElementById('input-location').value || '기본장소', start: now };
+      sessions.push(currentSession);
+    }
+  }
+
+  function changeLocation(value) {
+    const input = document.getElementById('input-location');
+    if (input.value !== value) input.value = value;
+    if (currentSession) {
+      const now = new Date();
+      currentSession.end = now;
+      updateLog();
+      currentSession = { activity: document.getElementById('input-activity').value || '공부', location: value, start: now };
+      sessions.push(currentSession);
+    }
+  }
+
+document.getElementById('btn-start').addEventListener('click', () => {
+    
+    const activity = document.getElementById('input-activity').value.trim();
+  const location = document.getElementById('input-location').value.trim();
+
+  // ✅ 유효성 검사
+  if (!activity || !location) {
+    alert("활동과 장소를 모두 선택해주세요");
+    return;
+  }
+
+  const start = new Date();
+  document.getElementById('btn-start').disabled = true;
+  document.getElementById('btn-pause').disabled = false;
+  document.getElementById('btn-reset').disabled = false;
+  totalSeconds = 0;
+  updateDisplay();
+  timerInterval = setInterval(() => {
+    totalSeconds++;
+    updateDisplay();
+    updateLog();
+  }, 1000);
+
+  currentSession = { activity, location, start };
+  sessions.push(currentSession);
+  document.getElementById('timer-display').classList.add('pulse');
+});
+
+
+  document.getElementById('btn-pause').addEventListener('click', () => {
+    clearInterval(timerInterval);
+    const now = new Date();
+    if (currentSession) {
+      currentSession.end = now;
+      currentSession.duration = Math.floor((now - currentSession.start) / 1000);
+      currentSession = null;
+    }
+    updateLog();
+    document.getElementById('btn-start').disabled = false;
+    document.getElementById('btn-pause').disabled = true;
+    document.getElementById('timer-display').classList.remove('pulse');
+  });
+
+  document.getElementById('btn-reset').addEventListener('click', () => {
+  clearInterval(timerInterval);
+  totalSeconds = 0;
+  updateDisplay();
+  document.getElementById('btn-start').disabled = false;
+  document.getElementById('btn-pause').disabled = true;
+  document.getElementById('btn-reset').disabled = true;
+  document.getElementById('timer-display').classList.remove('pulse');
+
+  const addr = 'https://script.google.com/macros/s/AKfycbxgR0K_MM9-PRbQeLYAYNRvtHQS1zOIOn7BTB2S1Z-uE5ZmWKZJwetnhzTG7hvaq-n_XA/exec';
+
+  if (sessions.length > 0) {
+    sessions.forEach(s => {
+      const record = JSON.stringify({
+        activity: s.activity,
+        location: s.location,
+        start: s.start.toISOString().slice(0,19).replace('T',' '),
+        end: s.end ? s.end.toISOString().slice(0,19).replace('T',' ') : '',
+        duration: s.duration || ''
+      });
+
+      $.ajax({
+        url: addr + '?action=insert&table=timer&data=' + encodeURIComponent(record),
+        dataType: 'jsonp',
+        success: () => console.log('✅ 저장 성공:', record),
+        error: () => console.error('❌ 저장 실패:', record)
+      });
+    });
+  }
+
+  // 기록 초기화
+  sessions.length = 0;
+  currentSession = null;
+  updateLog();
+});
+
+
+  updateDisplay();
+
+    // 챗봇
+    function getSmartBotReply(msg) {
+      const text = msg.toLowerCase();
+      if (text.includes('스트레칭')) return '목→어깨→다리 순서로 3분간 천천히 스트레칭 해보세요!';
+      if (text.includes('눈') && text.includes('피로')) return '20-20-20 법칙: 20분마다 20초간 6m 거리 응시!';
+      if (text.includes('루틴')) return 'Pomodoro 루틴: 25분 집중 → 5분 휴식, 4회 반복 후 긴 휴식 추천!';
+      if (text.includes('준비') || text.includes('공부 전')) return '자리 정리 + 물 마시기 + 오늘 목표 확인이 좋아요.';
+      if (text.includes('초기화') || text.includes('타이머')) return '[초기화] 버튼을 누르면 됩니다!';
+
+      if (text.includes('부엉이가 물에 빠지면?')) return '첨부엉...첨부엉...';
+      if (text.includes('안녕')) return '안녕하세요';
+      if (text.includes('하이')) return 'HI';
+      if (text.includes('ㅇ')) return 'ㅇ';
+      if (text.includes('집중')) return '집중하세요';
+      
+      return '죄송해요. 아직 학습되지 않은 질문이에요!';
+    }
+
+    function addMessage(text, type) {
+      const msgBox = document.createElement('div');
+      msgBox.className = `bubble ${type}`;
+      msgBox.textContent = text;
+      document.getElementById('chatbot-messages').appendChild(msgBox);
+      document.getElementById('chatbot-messages').scrollTop = document.getElementById('chatbot-messages').scrollHeight;
+    }
+
+    function handleUserMessage(msg) {
+    addMessage(msg, 'user');
+
+    const thinking = document.createElement('div');
+    thinking.className = 'bubble bot';
+    thinking.textContent = '...';
+    document.getElementById('chatbot-messages').appendChild(thinking);
+
+// ✅ 짧은 입력에 대한 자동 응답 + 키워드별 한 줄 명언 출력
+const len = [...msg.trim()].length;
+const isKorean = /[가-힣]/.test(msg);
+const isTooShort = isKorean ? len <= 5 : len <= 10;
+
+// 동기부여 명언 리스트
+const motivationQuotes = [
+  "“할 수 있다고 생각하든, 할 수 없다고 생각하든 당신은 옳다.” – 헨리 포드",
+  "“당신이 할 수 있다고 믿으면 이미 반은 온 것이다.” – 시어도어 루즈벨트",
+  "“성공은 최선을 다한 작은 습관들이 모여 만들어진다.” – 롭 버트",
+  "“나는 실패한 적이 없다. 단지 잘못되는 방법 1만 가지를 찾아냈을 뿐이다.” – 토머스 에디슨",
+  "“위대한 것은 한 번에 이루어지지 않는다. 한 걸음씩 나아가라.” – 빈스 롬바르디",
+  "“포기하지 않는 자만이 끝에 미소 지을 수 있다.” – 윌리엄 셰익스피어",
+  "“지금의 노력이 내일의 기회를 만든다.” – 미상",
+  "“어제보다 성장했다면, 오늘은 충분히 잘하고 있는 것이다.” – 미상"
+];
+
+// 취준 명언 리스트
+const jobQuotes = [
+  "“준비가 끝나면 기회가 온다.” – 세네카",
+  "“불가능하다고 느껴질 때가 바로 시작할 순간이다.” – 찰스 디킨스",
+  "“기회는 준비된 사람에게만 온다.” – 루이 파스퇴르",
+  "“실패를 두려워하지 말고, 도전하는 자신을 믿어라.” – 넬슨 만델라",
+  "“오늘의 작은 노력들이 내일의 일자리를 만든다.” – 미상",
+  "“한 번의 면접이 끝이 아니다. 계속 도전하라.” – 미상",
+  "“당신이 멈추지 않는 한, 절대 뒤처지지 않는다.” – 미상",
+  "“성공은 용기 있는 자의 것이다.” – 윈스턴 처칠"
+];
+
+// 메시지에 키워드가 포함됐는지 검사
+const contains = kw => msg.includes(kw);
+
+setTimeout(() => {
+  thinking.remove();
+
+  if (contains("동기부여")) {
+    // 한 줄 동기부여 명언 랜덤 선택
+    const quote = motivationQuotes[
+      Math.floor(Math.random() * motivationQuotes.length)
+    ];
+    addMessage(quote, 'bot');
+  }
+  else if (contains("취준")) {
+    // 한 줄 취준 명언 랜덤 선택
+    const quote = jobQuotes[
+      Math.floor(Math.random() * jobQuotes.length)
+    ];
+    addMessage(quote, 'bot');
+  }
+  else if (isTooShort) {
+    // 짧은 입력 응답
+    const shortReplies = [
+      "다시 집중하러 가세요 🐝",
+      "짧은 말은 그만, 집중 모드로! 🔍",
+      "조금만 더 집중해볼까요? 💪",
+      "집중 시간이 필요해요 ⏰",
+      "이야기는 나중에, 집중합시다! 🎯",
+      "집중력을 높여볼까요? 🚀"
+    ];
+    const reply = shortReplies[
+      Math.floor(Math.random() * shortReplies.length)
+    ];
+    addMessage(reply, 'bot');
+  }
+  else {
+    // 일반 스마트 답변
+    addMessage(getSmartBotReply(msg), 'bot');
+  }
+}, 1000 + Math.random() * 1000);
+    }
+
+
+
+
+    document.getElementById('chat-send').addEventListener('click', () => {
+      const input = document.getElementById('chat-input');
+      const msg = input.value.trim();
+      if (!msg) return;
+      input.value = '';
+      handleUserMessage(msg);
+    });
+
+    document.querySelectorAll('.chatbot-faq-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        handleUserMessage(btn.textContent);
+    });
+    });
+
+    document.getElementById('chatbot-toggle').addEventListener('click', () => {
+    const bot = document.getElementById('chatbot');
+    const hint = document.getElementById('chatbot-hint');
+
+    if (bot.style.display === 'none') {
+        // 챗봇 열기
+        bot.style.display = 'flex';
+        document.getElementById('chatbot-toggle').textContent = '챗봇 닫기';
+
+        // 🧼 말풍선 영구 제거 (다시 안 보이게)
+        if (hint) {
+        hint.remove();
+        }
+    } else {
+        // 챗봇 닫기
+        bot.style.display = 'none';
+        document.getElementById('chatbot-toggle').textContent = '챗봇 열기';
+    }
+    });
+    
+    
+
+    
+
+// 사용방법 패널 열고 닫기
+const usageToggle = document.getElementById('usage-toggle');
+const usagePanel  = document.getElementById('usage-panel');
+const closeBtn    = usagePanel.querySelector('.close-btn');
+
+usageToggle.addEventListener('click', () => {
+  usagePanel.classList.toggle('open');
+});
+closeBtn.addEventListener('click', () => {
+  usagePanel.classList.remove('open');
+});
+
+
+    
+
+  </script>
+  
+</body>
+</html>

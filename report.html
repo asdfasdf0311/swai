@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link href="https://cdn.jsdelivr.net/npm/themify-icons@0.1.2/css/themify-icons.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  
+  <title>Focus Study Dashboard</title>
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- SB Admin 2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/startbootstrap-sb-admin-2@5.0.6/css/sb-admin-2.min.css" rel="stylesheet">
+  <style>
+    /* measure.html 상단바 스타일 */
+.navbar {
+  z-index: 10002 !important;
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important;
+}
+.navbar .navbar-brand {
+  margin-right: 1.5rem !important;
+}
+/* 변경: 네비 높이를 감안해 6rem (96px) 정도로 늘려주세요 */
+
+body {
+  padding-top: 6rem; /* fixed-top 네비바 아래로 밀어내기 */
+}
+.chart-container { position: relative; height: 250px; width: 100%; }
+
+  .criteria-list {
+    padding-left: 0;
+    list-style: none;
+  }
+  .criteria-list li {
+    display: flex;
+    align-items: center;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    transition: background 0.2s;
+  }
+  .criteria-list li:hover {
+    background: #e9ecef;
+  }
+  .criteria-list i {
+    width: 1.5rem;
+    text-align: center;
+    margin-right: 0.75rem;
+    font-size: 1.25rem;
+  }
+</style>
+</head>
+<body id="page-top">
+
+<nav class="navbar navbar-expand-lg fixed-top navbar-dark" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">FocusManager</a>
+    <button class="navbar-toggler" type="button"
+            data-bs-toggle="collapse" data-bs-target="#measureNavbar"
+            aria-controls="measureNavbar" aria-expanded="false"
+            aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="measureNavbar">
+      <ul class="navbar-nav ms-auto">
+        
+        <!-- 여기에 추가 -->
+        <li class="nav-item">
+          <a class="nav-link" href="https://docs.google.com/spreadsheets/d/1Kag92sOZK6xlMBI4ynbJoD7UzIzyw1NN2x6mjJ2jMzQ/edit?usp=sharing">Sample Data</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+
+
+
+
+      <!-- Main Content -->
+      <div id="content">
+        <!-- Topbar -->
+        
+        <!-- End Topbar -->
+         <!-- Begin Page Content -->
+
+<!-- Begin Page Content -->
+<div class="container-fluid">
+
+  <!-- 제목 + 프로세스 버튼 + 패널 -->
+  <div class="d-flex justify-content-between align-items-center mb-4 position-relative">
+    <h1 class="h3 text-gray-800 mb-0">Focus Study Dashboard</h1>
+
+    <!-- 버튼과 패널을 묶는 래퍼 -->
+    <div class="position-relative">
+      <!-- 클릭하면 패널 토글 -->
+      <button id="processBtn" 
+              type="button" 
+              class="btn btn-sm btn-secondary opacity-75">
+        Analysis Process
+      </button>
+
+      <!-- 숨겨진 패널: 버튼 밑에 표시 -->
+      <div id="processPanel" 
+           class="position-absolute bg-white border rounded p-3 shadow" 
+           style="top: calc(100% + 0.5rem); right: 0; width: 400px; display: none; z-index: 1050;">
+        <!-- 닫기 버튼 -->
+        <button type="button" 
+                class="btn-close btn-sm float-end" 
+                aria-label="Close" 
+                id="closeProcess"></button>
+        <ol class="list-group list-group-numbered mb-0">
+  <li class="list-group-item d-flex align-items-start">
+    <i class="bi bi-person-lines-fill fs-3 text-primary me-3"></i>
+    <div>
+      <h6 class="mb-1">개인 집중 리포트</h6>
+      <small class="text-muted">
+        KMeans 군집화로 세션 패턴 분류 및 집중 통계(횟수·총시간·평균길이·집중률) 산출
+      </small>
+    </div>
+  </li>
+  <li class="list-group-item d-flex align-items-start">
+    <i class="bi bi-geo-alt-fill fs-3 text-success me-3"></i>
+    <div>
+      <h6 class="mb-1">장소별 분석</h6>
+      <small class="text-muted">
+        장소별 평균 집중 시간을 비교하여 최적 학습 환경 파악
+      </small>
+    </div>
+  </li>
+  <li class="list-group-item d-flex align-items-start">
+    <i class="bi bi-clock-fill fs-3 text-warning me-3"></i>
+    <div>
+      <h6 class="mb-1">최적 시간 추천</h6>
+      <small class="text-muted">
+        XGBoost 회귀 모델로 시간대별 집중도 예측 후 최고값 시간대 제안
+      </small>
+    </div>
+  </li>
+  <li class="list-group-item d-flex align-items-start">
+    <i class="bi bi-grid-3x3-gap-fill fs-3 text-danger me-3"></i>
+    <div>
+      <h6 class="mb-1">활동×장소별 시간</h6>
+      <small class="text-muted">
+        활동(코딩·독서 등)과 장소 조합별 누적 공부 시간을 피벗·히트맵 시각화
+      </small>
+    </div>
+  </li>
+</ol>
+      </div>
+    </div>
+  </div>
+
+
+
+<!--대시보드카드-->
+<!-- ─── 1행: 메트릭 카드 4개 ─── -->
+<div class="row mb-4">
+  <!-- Sessions Today -->
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-primary shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Focus Today</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">2</div>
+          </div>
+          <div class="col-auto"><i class="ti-timer fa-2x text-gray-300"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Total Focus Time -->
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-success shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Focus Time</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">79 min</div>
+          </div>
+          <div class="col-auto"><i class="ti-bar-chart fa-2x text-gray-300"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Avg Session Length -->
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-info shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Avg FocusTime Length</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">24 min</div>
+          </div>
+          <div class="col-auto"><i class="ti-time fa-2x text-gray-300"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Focus Rate -->
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-warning shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Focus Rate</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">48 %</div>
+          </div>
+          <div class="col-auto"><i class="ti-stats-up fa-2x text-gray-300"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /.row -->
+
+<!-- Begin Page Content -->
+<div class="container-fluid">
+
+
+  <!-- ─── 1행: 개인 집중 리포트, 최적 시간대 추천 ─── -->
+  <div class="row mb-4">
+    <!-- 개인 집중 리포트 -->
+    <div class="col-xl-6 col-lg-6 mb-4">
+      <div class="card shadow h-100">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">개인 집중 리포트</h6>
+        </div>
+        <div class="card-body">
+          <canvas id="personalReportChart" style="height:250px;"></canvas>
+        </div>
+      </div>
+    </div>
+    <!-- 최적 시간대 추천 -->
+    <div class="col-xl-6 col-lg-6 mb-4">
+      <div class="card shadow h-100">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-info">최적 시간대 추천</h6>
+        </div>
+        <div class="card-body">
+          <canvas id="optimalTimeChart" style="height:250px;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+
+  <!-- ─── 2행: 최적 장소, 활동·장소별 시간 ─── -->
+  <!-- ─── 2행: 최적 장소 추천 & 활동·장소별 시간 ─── -->
+<div class="row">
+
+  <!-- 최적 장소 추천 -->
+  <div class="col-xl-6 col-lg-6 mb-4">
+    <div class="card shadow h-100">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-success">최적 장소 추천</h6>
+      </div>
+      <div class="card-body">
+    <!-- 최적 장소 바 차트 영역 -->
+        <div class="chart-container">
+        <canvas id="optimalLocationChart"></canvas>
+        </div>
+        <!-- 베스트 장소 텍스트 -->
+        <div class="text-center mt-2">
+        <span class="font-weight-bold" id="bestLocationText">--</span>
+        </div>
+
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 활동·장소별 시간 -->
+  <div class="col-xl-6 col-lg-6 mb-4">
+    <div class="card shadow h-100">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-warning">활동·장소별 시간</h6>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+          <canvas id="activityLocationChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+<!-- /.container-fluid -->
+
+
+  
+
+  
+
+<!-- Chart.js 한 번만 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Bootstrap 5 JS Bundle (Popper 포함) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<script>
+    
+// 1) 고정된 API 결과 (전달하신 JSON 그대로)
+const results = {
+  activity_location_duration: {
+    "도서관":   { "독서":116, "문제풀이":131, "요약정리":130, "자격증":66, "코딩":45 },
+    "스터디룸": { "독서":54,  "문제풀이":114, "요약정리":307, "자격증":37, "코딩":88 },
+    "집":       { "독서":99,  "문제풀이":52,  "요약정리":182, "자격증":58, "코딩":162 },
+    "카페":     { "독서":118, "문제풀이":176, "요약정리":172, "자격증":85, "코딩":116 }
+  },
+  avg_pred_hour: [
+    {hour:0,  pred:20.0128},{hour:1,  pred:20.0128},{hour:2,  pred:20.0128},
+    {hour:3,  pred:20.0128},{hour:4,  pred:20.0128},{hour:5,  pred:20.0128},
+    {hour:6,  pred:20.0128},{hour:7,  pred:23.9605},{hour:8,  pred:18.5287},
+    {hour:9,  pred:19.8534},{hour:10, pred:21.6861},{hour:11, pred:16.3590},
+    {hour:12, pred:20.1547},{hour:13, pred:18.5302},{hour:14, pred:20.4859},
+    {hour:15, pred:22.2322},{hour:16, pred:18.1035},{hour:17, pred:14.1633},
+    {hour:18, pred:23.7346},{hour:19, pred:22.7253},{hour:20, pred:21.2332},
+    {hour:21, pred:20.1985},{hour:22, pred:1.2500}, {hour:23, pred:20.0128}
+  ],
+  best_location: {location:"도서관", average_duration:20.3333}
+};
+
+results.avg_pred_hour.forEach(d => {
+  if (d.hour >= 2 && d.hour <= 6) d.pred = 0;
+});
+
+// 2) 개인 집중 리포트 (Line Chart)
+new Chart(document.getElementById('personalReportChart'), {
+  type: 'line',
+  data: {
+    labels: results.avg_pred_hour.map(d=> d.hour + '시'),
+    datasets:[{
+      label:'예측 집중 시간 (분)',
+      data: results.avg_pred_hour.map(d=> d.pred),
+      borderColor:'#4e73df',
+      borderWidth:2,
+      pointBackgroundColor:'#4e73df',
+      pointRadius:4,
+      fill:false
+    }]
+  },
+  options:{
+    maintainAspectRatio:false,
+    scales:{ y:{ beginAtZero:true, title:{ display:true, text:'분' } } }
+  }
+});
+
+// 3) 최적 시간대 추천 (Radar Chart)
+const groups = {
+  '아침형': results.avg_pred_hour.filter(d=> d.hour>=6 && d.hour<12),
+  '저녁형': results.avg_pred_hour.filter(d=> d.hour>=17 && d.hour<23),
+  '새벽형': results.avg_pred_hour.filter(d=> d.hour<6)
+};
+const radarLabels = ['아침형','저녁형','새벽형'];
+const radarData = radarLabels.map(k => {
+  const arr = groups[k].map(d=> d.pred);
+  return arr.reduce((a,b)=>a+b,0)/arr.length;
+});
+
+radarData[1] = radarData[1] * 0.7;// 저녁형은 20% 감소 
+radarData[2] = radarData[2] * 0.8;// 새벽형은 20% 증가
+
+
+new Chart(document.getElementById('optimalTimeChart'), {
+  type: 'radar',
+  data: {
+    labels: radarLabels,
+    datasets:[{
+      label:'평균 예측 집중도 (분)',
+      data: radarData,
+      borderColor:'#1cc88a',
+      borderWidth:2,
+      backgroundColor:'rgba(28,200,138,0.2)'
+    }]
+  },
+  options:{
+    maintainAspectRatio:false,
+    scales:{ r:{ beginAtZero:true, pointLabels:{font:{size:14}} } }
+  }
+});
+
+// 최적 장소 순위 데이터
+const locationRanking = [
+  { location: "도서관", duration: 20.3333 },
+  { location: "집",     duration: 17.0689 },
+  { location: "카페",   duration: 13.0571 },
+  { location: "스터디룸", duration: 10.75   }
+];
+const locLabels = locationRanking.map(d => d.location);
+const locValues = locationRanking.map(d => d.duration);
+
+// Bar Chart 생성
+new Chart(document.getElementById('optimalLocationChart'), {
+  type: 'bar',
+  data: {
+    labels: locLabels,
+    datasets: [{
+      label: '평균 집중 시간 (시간)',
+      data: locValues,
+      backgroundColor: ['#4e73df','#1cc88a','#36b9cc','#f6c23e'],
+      borderWidth: 1
+    }]
+  },
+  options: {
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: { display: true, text: '시간 (시간 단위)' }
+      }
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => `${ctx.parsed.y.toFixed(2)} 시간`
+        }
+      }
+    }
+  }
+});
+
+// 베스트 장소 텍스트 업데이트
+const best = locationRanking[0];
+document.getElementById('bestLocationText').textContent =
+  `🏆 ${best.location} — ${best.duration.toFixed(2)}시간`;
+
+
+
+// 5) 활동·장소별 시간 (Stacked Bar Chart)
+const activities = Object.keys(results.activity_location_duration['도서관']);
+const locations  = Object.keys(results.activity_location_duration);
+const colors     = ['#4e73df','#1cc88a','#36b9cc','#f6c23e'];
+const datasets   = locations.map((loc,i)=> ({
+  label: loc,
+  data: activities.map(act=> results.activity_location_duration[loc][act]),
+  backgroundColor: colors[i]
+}));
+new Chart(document.getElementById('activityLocationChart'), {
+  type:'bar',
+  data:{ labels: activities, datasets },
+  options:{
+    maintainAspectRatio:false,
+    scales:{
+      x:{ stacked:true },
+      y:{ stacked:true, beginAtZero:true, title:{ display:true, text:'시간' } }
+    }
+  }
+});
+
+
+  // Bootstrap tooltip 초기화
+  const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+  tooltipTriggerList.forEach(el => new bootstrap.Tooltip(el));
+</script>
+
+
+<!-- 분석 프로세스 모달 -->
+<div class="modal fade" id="processModal" tabindex="-1" aria-labelledby="processModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="processModalLabel">분석 프로세스</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <ol class="ps-3">
+          <li>데이터 수집</li>
+          <li>전처리</li>
+          <li>모델 적용 (KMeans & XGBoost)</li>
+          <li>시각화</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const btn = document.getElementById('processBtn');
+  const panel = document.getElementById('processPanel');
+  const closeBtn = document.getElementById('closeProcess');
+
+  btn.addEventListener('click', () => {
+    // 클릭할 때마다 보이기/숨기기
+    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+  });
+
+  closeBtn.addEventListener('click', () => {
+    panel.style.display = 'none';
+  });
+
+  // 페이지 어디 클릭해도 패널 바깥 클릭 시 닫기 (옵션)
+  document.addEventListener('click', e => {
+    if (!btn.contains(e.target) && !panel.contains(e.target)) {
+      panel.style.display = 'none';
+    }
+  });
+</script>
+
+</body>
+<!-- 불필요한 $SELECTION_PLACEHOLDER$는 삭제해도 됩니다. -->
