@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="FocusManager AI Landing Page">
+  <meta name="author" content="Devcrud">
+  <title>FocusManager AI</title>
+
+  <!-- font icons -->
+  <link rel="stylesheet" href="assets/vendors/themify-icons/css/themify-icons.css">
+  <!-- owl carousel -->
+  <link rel="stylesheet" href="assets/vendors/owl-carousel/css/owl.carousel.css">
+  <link rel="stylesheet" href="assets/vendors/owl-carousel/css/owl.theme.default.css">
+  <!-- Bootstrap + main styles -->
+  <link rel="stylesheet" href="assets/css/ollie.css">
+
+  <!-- JS libs -->
+  <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+  <!-- Smooth scrolling & Preview card sizing -->
+  <style>
+html { scroll-behavior: smooth; }
+    .preview-card { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; }
+    /* 이미지 높이를 고정하고 비율 유지 */
+    .preview-card .card-img-top {
+      height: 450px;       /* 원하시는 높이로 변경 */
+      object-fit: contain; /* 또는 cover */
+    }
+    /* 카드 바디를 아래로 밀어 균일한 레이아웃 유지 */
+    .preview-card .card-body {
+      flex-grow: 1;
+    }
+  </style>
+
+
+  <!-- Get User IP -->
+  <script>
+    var ip = "unknown";
+    function getIP(json) { ip = json.ip || 'unknown'; }
+  </script>
+  <script src="https://jsonip.com?format=jsonp&callback=getIP"></script>
+
+  <!-- Cookie helper -->
+  <script>
+    function getCookieValue(name) { const value = "; " + document.cookie; const parts = value.split("; " + name + "="); if (parts.length === 2) return parts.pop().split(";").shift(); }
+    function setCookieValue(name, value, days) { let expires = ""; if (days) { const date = new Date(); date.setTime(date.getTime() + days*24*60*60*1000); expires = "; expires="+date.toUTCString(); } document.cookie = name + "=" + value + expires + "; path=/"; }
+    function getUVfromCookie() { const existing = getCookieValue('user'); if (existing) return existing; const hash = Math.random().toString(36).substring(2,8).toUpperCase(); setCookieValue('user', hash, 180); return hash; }
+  </script>
+</head>
+<body data-spy="scroll" data-target=".navbar" data-offset="40" id="home">
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-transparent">
+    <div class="container">
+      <a class="navbar-brand" href="#">FocusManager</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="#testmonial">For Whom?</a></li>
+          <li class="nav-item"><a class="nav-link" href="#portfolio">Preview</a></li>
+          <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+<!-- === Replace your current <header>…</header> with this === -->
+<header id="home" class="header" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);">
+  <div class="overlay" style="background: rgba(30,60,114,0.4);"></div>
+  <div id="header-carousel" class="carousel slide carousel-fade" data-ride="carousel" data-interval="5000">
+    <div class="container text-center">
+      <div class="carousel-inner">
+        <div class="carousel-item active">
+          <div class="carousel-caption d-none d-md-block">
+            <h1 class="carousel-title text-white" style="line-height:1.2;">
+              <span id="typed-line1"></span><br>
+              <span id="typed-line2"></span>
+            </h1>
+            <div class="mt-4">
+              <a href="#portfolio" class="btn btn-outline-light btn-rounded">Learn More</a>
+              <a href="measure.html" class="btn btn-outline-light btn-rounded ml-2">⏰ Timer</a>
+              <a href="report.html" class="btn btn-outline-light btn-rounded ml-2">📄 Report</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ol class="carousel-indicators custom-indicators">
+        <li data-target="#header-carousel" data-slide-to="0" class="active"></li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- two-line typewriter -->
+  <script>
+    const line1 = "오늘도 3시간 앉아..";
+    const line2 = "10분 집중했나요?";
+    let idx1 = 0, idx2 = 0, int1, int2;
+
+    function typeL1() {
+      document.getElementById("typed-line1").textContent = line1.slice(0, ++idx1);
+      if (idx1 === line1.length) {
+        clearInterval(int1);
+        setTimeout(() => { int2 = setInterval(typeL2, 100); }, 500);
+      }
+    }
+    function typeL2() {
+      document.getElementById("typed-line2").textContent = line2.slice(0, ++idx2);
+      if (idx2 === line2.length) clearInterval(int2);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      int1 = setInterval(typeL1, 100);
+    });
+  </script>
+</header>
+
+
+
+
+  <!-- For Whom Section -->
+  <section class="section" id="testmonial">
+    <div class="container">
+      <h3 class="section-title text-center mb-5"> For Whom? </h3>
+      <div id="owl-testmonial" class="owl-carousel owl-theme mt-4">
+        <div class="item">
+          <div class="textmonial-item">
+            <img src="assets/imgs/avatar1.png" class="avatar" alt="학생 후기">
+            <div class="des">
+              <p>공부는 열심히 하는데, 왜 성과가 안 나는지 모르겠어요.</p>
+              <div class="line"></div>
+              <h6 class="name">메이</h6>
+              <h6 class="xs-font">고등학생 · 수능 준비 중</h6>
+            </div>
+          </div>
+        </div>
+        <div class="item">
+          <div class="textmonial-item">
+            <img src="assets/imgs/avatar2.png" class="avatar" alt="직장인 후기">
+            <div class="des">
+              <p>퇴근 후 자기개발을 하려는데, 집중이 너무 안돼요.</p>
+              <div class="line"></div>
+              <h6 class="name">토토로</h6>
+              <h6 class="xs-font">직장인 · 자격증 공부 중</h6>
+            </div>
+          </div>
+        </div>
+        <div class="item">
+          <div class="textmonial-item">
+            <img src="assets/imgs/avatar3.png" class="avatar" alt="수험생 후기">
+            <div class="des">
+              <p>나에게 맞는 공부 시간과 장소, 그리고 방식이 뭔지 알고 싶어요.</p>
+              <div class="line"></div>
+              <h6 class="name">포뇨</h6>
+              <h6 class="xs-font">공시생 · 루틴 설계 고민 중</h6>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Preview Section -->
+  <section class="section" id="portfolio">
+    <div class="container">
+      <h3 class="section-title text-center mb-5">Preview</h3>
+      <div class="row text-center g-4 justify-content-center">
+        <div class="col-md-6 col-lg-5">
+          <div class="card border-0 shadow-sm preview-card">
+            <img src="assets/imgs/preview-timer.png" class="card-img-top" alt="Timer 기능">
+            <div class="card-body">
+              <h5 class="card-title">Timer</h5>
+              <p class="card-text">시간 측정으로 집중 세션을 기록하고 분석합니다.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-5">
+          <div class="card border-0 shadow-sm preview-card">
+            <img src="assets/imgs/preview-report.png" class="card-img-top" alt="Report 기능">
+            <div class="card-body">
+              <h5 class="card-title">Report</h5>
+              <p class="card-text">집중 데이터를 시각화한 맞춤형 리포트를 제공합니다.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- FAQ Section -->
+  <section class="section bg-light" id="faq">
+    <div class="container">
+      <h3 class="section-title text-center mb-4">FAQ</h3>
+      <div id="faqAccordion">
+        <div class="card mb-2">
+          <div class="card-header" id="faqHeading1">
+            <h5 class="mb-0">
+              <button class="btn btn-link" data-toggle="collapse" data-target="#faq1" aria-expanded="true" aria-controls="faq1">
+                FocusManager는 어떤 서비스인가요?
+              </button>
+            </h5>
+          </div>
+          <div id="faq1" class="collapse show" data-parent="#faqAccordion">
+            <div class="card-body">
+              FocusManager은 사용자의 집중 패턴을 기록하고 분석하여 최적의 학습 환경을 제안하는 서비스입니다.
+            </div>
+          </div>
+        </div>
+        <div class="card mb-2">
+          <div class="card-header" id="faqHeading2">
+            <h5 class="mb-0">
+              <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#faq2" aria-expanded="false" aria-controls="faq2">
+                열품타와의 차이점이 뭔가요?
+              </button>
+            </h5>
+          </div>
+          <div id="faq2" class="collapse" data-parent="#faqAccordion">
+            <div class="card-body">
+              열품타는 타이머 기반 집중 보조 도구이며, FocusManager는 데이터 분석과 AI 예측을 통해 개인 맞춤형 집중 전략을 제공합니다.
+            </div>
+          </div>
+        </div>
+        <div class="card mb-2">
+          <div class="card-header" id="faqHeading3">
+            <h5 class="mb-0">
+              <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#faq3" aria-expanded="false" aria-controls="faq3">
+                제 시간 기록 데이터는 어디에 안전하게 보관되나요?
+              </button>
+            </h5>
+          </div>
+          <div id="faq3" class="collapse" data-parent="#faqAccordion">
+            <div class="card-body">
+              모든 데이터는 Google Sheets를 통한 안전한 클라우드 기반 데이터베이스에 암호화되어 저장됩니다.
+            </div>
+          </div>
+        </div>
+        <div class="card mb-2">
+          <div class="card-header" id="faqHeading4">
+            <h5 class="mb-0">
+              <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#faq4" aria-expanded="false" aria-controls="faq4">
+                제 집중리포트를 어떻게 분석하는 건가요?
+              </button>
+            </h5>
+          </div>
+          <div id="faq4" class="collapse" data-parent="#faqAccordion">
+            <div class="card-body">
+              머신러닝 기반 회귀 모델과 군집 분석을 통해 사용자의 집중 패턴을 파악하고, 시각화 및 추천 알고리즘으로 분석 결과를 제공합니다.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section class="section text-center" id="contact">
+    <div class="container">
+      <h3 class="section-title mb-4">Contact & Feedback</h3>
+      <form id="feedback-form" class="mx-auto" style="max-width:400px;">
+        <input type="email" id="feedback-email" class="form-control mb-3" placeholder="이메일 입력" required>
+        <textarea id="feedback-text" class="form-control mb-3" rows="4" placeholder="의견을 남겨주세요"></textarea>
+        <button type="button" id="feedback-submit" class="btn btn-primary w-100">제출</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Scripts -->
+  <script src="assets/vendors/jquery/jquery-3.4.1.js"></script>
+  <script src="assets/vendors/bootstrap/bootstrap.bundle.js"></script>
+  <script src="assets/vendors/bootstrap/bootstrap.affix.js"></script>
+  <script src="assets/vendors/owl-carousel/js/owl.carousel.js"></script>
+  <script src="assets/js/Ollie.js"></script>
+  <script>
+    // Visitor insert
+    const addr = 'https://script.google.com/macros/s/AKfycbxgR0K_MM9-PRbQeLYAYNRvtHQS1zOIOn7BTB2S1Z-uE5ZmWKZJwetnhzTG7hvaq-n_XA/exec';
+    $(document).ready(() => {
+      const visitData = JSON.stringify({
+        id: getUVfromCookie(), landingUrl: location.href, ip,
+        referer: document.referrer,
+        time_stamp: new Date().toISOString().slice(0,19).replace('T',' '),
+        utm: new URLSearchParams(location.search).get('utm')||'',
+        device: /Mobile/.test(navigator.userAgent)?'mobile':'desktop'
+      });
+      $.ajax({ url: addr+'?action=insert&table=visitors&data='+encodeURIComponent(visitData), dataType:'jsonp' });
+    });
+
+    // Testimonials carousel
+    $('#owl-testmonial').owlCarousel({ items:1, loop:true, nav:false, dots:true });
+
+    // Feedback submit
+    $('#feedback-submit').click(() => {
+      const email = $('#feedback-email').val();
+      const advice = $('#feedback-text').val();
+      if (!email || !advice) return alert('모든 필드를 입력해주세요.');
+      const payload = JSON.stringify({ id: getUVfromCookie(), email, advice });
+      $.ajax({
+        url: addr + '?action=insert&table=feedback&data=' + encodeURIComponent(payload),
+        dataType: 'jsonp',
+        success: () => { alert('감사합니다! 피드백이 저장되었습니다.'); $('#feedback-email,#feedback-text').val(''); },
+        error: () => alert('오류가 발생했습니다.')
+      });
+    });
+  </script>
+  <footer style="
+    text-align: center;
+    font-size: 0.6rem;
+    color: #888;
+    margin-top: 2rem;
+    padding: 1rem 0;
+">
+  Developed by joo._.haa
+</footer>
+</body>
+</html>
